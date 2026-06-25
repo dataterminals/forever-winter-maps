@@ -1,0 +1,317 @@
+{
+ "generated": "2026-06-25",
+ "maps": [
+  {
+   "id": "ashen-mesa",
+   "name": "Ashen Mesa",
+   "type": "surface",
+   "file": "data/ashen-mesa.json",
+   "markers": 168,
+   "images": 64
+  },
+  {
+   "id": "babel",
+   "name": "Babel",
+   "type": "surface",
+   "file": "data/babel.json",
+   "markers": 121,
+   "images": 34
+  },
+  {
+   "id": "downtown-lost-angels",
+   "name": "Downtown Lost Angels",
+   "type": "surface",
+   "file": "data/downtown-lost-angels.json",
+   "markers": 182,
+   "images": 42
+  },
+  {
+   "id": "elephant-mausoleum",
+   "name": "Elephant Mausoleum",
+   "type": "surface",
+   "file": "data/elephant-mausoleum.json",
+   "markers": 214,
+   "images": 64
+  },
+  {
+   "id": "frozen-swamp",
+   "name": "Frozen Swamp",
+   "type": "surface",
+   "file": "data/frozen-swamp.json",
+   "markers": 249,
+   "images": 63
+  },
+  {
+   "id": "mech-trenches",
+   "name": "Mech Trenches",
+   "type": "surface",
+   "file": "data/mech-trenches.json",
+   "markers": 137,
+   "images": 50
+  },
+  {
+   "id": "scorched-enclave",
+   "name": "Scorched Enclave",
+   "type": "surface",
+   "file": "data/scorched-enclave.json",
+   "markers": 148,
+   "images": 53
+  },
+  {
+   "id": "scrapyard-nexus",
+   "name": "Scrapyard Nexus",
+   "type": "surface",
+   "file": "data/scrapyard-nexus.json",
+   "markers": 90,
+   "images": 36
+  },
+  {
+   "id": "stairway-gate",
+   "name": "Stairway Gate",
+   "type": "surface",
+   "file": "data/stairway-gate.json",
+   "markers": 133,
+   "images": 47
+  },
+  {
+   "id": "underground-cemetery",
+   "name": "Underground Cemetery",
+   "type": "surface",
+   "file": "data/underground-cemetery.json",
+   "markers": 109,
+   "images": 32
+  },
+  {
+   "id": "tunnel-a1",
+   "name": "Tunnel A1",
+   "type": "tunnel",
+   "file": "data/tunnel-a1.json",
+   "markers": 72,
+   "images": 15
+  },
+  {
+   "id": "tunnel-a2",
+   "name": "Tunnel A2",
+   "type": "tunnel",
+   "file": "data/tunnel-a2.json",
+   "markers": 100,
+   "images": 15
+  },
+  {
+   "id": "tunnel-a3",
+   "name": "Tunnel A3",
+   "type": "tunnel",
+   "file": "data/tunnel-a3.json",
+   "markers": 74,
+   "images": 14
+  },
+  {
+   "id": "tunnel-a4",
+   "name": "Tunnel A4",
+   "type": "tunnel",
+   "file": "data/tunnel-a4.json",
+   "markers": 74,
+   "images": 16
+  },
+  {
+   "id": "tunnel-b1",
+   "name": "Tunnel B1",
+   "type": "tunnel",
+   "file": "data/tunnel-b1.json",
+   "markers": 95,
+   "images": 16
+  },
+  {
+   "id": "tunnel-b2",
+   "name": "Tunnel B2",
+   "type": "tunnel",
+   "file": "data/tunnel-b2.json",
+   "markers": 143,
+   "images": 20
+  },
+  {
+   "id": "tunnel-b3",
+   "name": "Tunnel B3",
+   "type": "tunnel",
+   "file": "data/tunnel-b3.json",
+   "markers": 100,
+   "images": 14
+  },
+  {
+   "id": "tunnel-b4",
+   "name": "Tunnel B4",
+   "type": "tunnel",
+   "file": "data/tunnel-b4.json",
+   "markers": 89,
+   "images": 16
+  },
+  {
+   "id": "tunnel-c1",
+   "name": "Tunnel C1",
+   "type": "tunnel",
+   "file": "data/tunnel-c1.json",
+   "markers": 136,
+   "images": 15
+  },
+  {
+   "id": "tunnel-c2",
+   "name": "Tunnel C2",
+   "type": "tunnel",
+   "file": "data/tunnel-c2.json",
+   "markers": 127,
+   "images": 17
+  },
+  {
+   "id": "tunnel-c3",
+   "name": "Tunnel C3",
+   "type": "tunnel",
+   "file": "data/tunnel-c3.json",
+   "markers": 114,
+   "images": 17
+  },
+  {
+   "id": "tunnel-c4",
+   "name": "Tunnel C4",
+   "type": "tunnel",
+   "file": "data/tunnel-c4.json",
+   "markers": 110,
+   "images": 15
+  },
+  {
+   "id": "tunnel-d1",
+   "name": "Tunnel D1",
+   "type": "tunnel",
+   "file": "data/tunnel-d1.json",
+   "markers": 130,
+   "images": 17
+  },
+  {
+   "id": "tunnel-d2",
+   "name": "Tunnel D2",
+   "type": "tunnel",
+   "file": "data/tunnel-d2.json",
+   "markers": 121,
+   "images": 19
+  },
+  {
+   "id": "tunnel-d3",
+   "name": "Tunnel D3",
+   "type": "tunnel",
+   "file": "data/tunnel-d3.json",
+   "markers": 108,
+   "images": 17
+  },
+  {
+   "id": "tunnel-d4",
+   "name": "Tunnel D4",
+   "type": "tunnel",
+   "file": "data/tunnel-d4.json",
+   "markers": 99,
+   "images": 16
+  },
+  {
+   "id": "tunnels",
+   "name": "Tunnels",
+   "type": "tunnel",
+   "file": "data/tunnels.json",
+   "markers": 132,
+   "images": 19
+  },
+  {
+   "id": "ashen-mesa-aerial",
+   "name": "Ashen Mesa Aerial",
+   "type": "aerial",
+   "file": "data/ashen-mesa-aerial.json",
+   "markers": 122,
+   "images": 22
+  },
+  {
+   "id": "babel-aerial",
+   "name": "Babel Aerial",
+   "type": "aerial",
+   "file": "data/babel-aerial.json",
+   "markers": 102,
+   "images": 22
+  },
+  {
+   "id": "downtown-lost-angels-aerial",
+   "name": "Downtown Lost Angels Aerial",
+   "type": "aerial",
+   "file": "data/downtown-lost-angels-aerial.json",
+   "markers": 206,
+   "images": 22
+  },
+  {
+   "id": "elephant-mausoleum-aerial",
+   "name": "Elephant Mausoleum Aerial",
+   "type": "aerial",
+   "file": "data/elephant-mausoleum-aerial.json",
+   "markers": 176,
+   "images": 22
+  },
+  {
+   "id": "frozen-swamp-aerial",
+   "name": "Frozen Swamp Aerial",
+   "type": "aerial",
+   "file": "data/frozen-swamp-aerial.json",
+   "markers": 194,
+   "images": 22
+  },
+  {
+   "id": "innards-aerial",
+   "name": "Innards Aerial",
+   "type": "aerial",
+   "file": "data/innards-aerial.json",
+   "markers": 2,
+   "images": 2
+  },
+  {
+   "id": "mech-trenches-aerial",
+   "name": "Mech Trenches Aerial",
+   "type": "aerial",
+   "file": "data/mech-trenches-aerial.json",
+   "markers": 104,
+   "images": 22
+  },
+  {
+   "id": "scorched-enclave-aerial",
+   "name": "Scorched Enclave Aerial",
+   "type": "aerial",
+   "file": "data/scorched-enclave-aerial.json",
+   "markers": 111,
+   "images": 22
+  },
+  {
+   "id": "scrapyard-nexus-aerial",
+   "name": "Scrapyard Nexus Aerial",
+   "type": "aerial",
+   "file": "data/scrapyard-nexus-aerial.json",
+   "markers": 62,
+   "images": 22
+  },
+  {
+   "id": "stairway-gate-aerial",
+   "name": "Stairway Gate Aerial",
+   "type": "aerial",
+   "file": "data/stairway-gate-aerial.json",
+   "markers": 108,
+   "images": 22
+  },
+  {
+   "id": "tunnels-aerial",
+   "name": "Tunnels Aerial",
+   "type": "aerial",
+   "file": "data/tunnels-aerial.json",
+   "markers": 65,
+   "images": 23
+  },
+  {
+   "id": "underground-cemetery-aerial",
+   "name": "Underground Cemetery Aerial",
+   "type": "aerial",
+   "file": "data/underground-cemetery-aerial.json",
+   "markers": 135,
+   "images": 23
+  }
+ ]
+}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+  <title>The Forever Winter — Interactive Maps</title>
+  <meta name="description" content="Offline interactive maps for The Forever Winter: spawns, extracts, loot, bosses and events across every region and tunnel.">
+  <meta name="theme-color" content="#121313">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="assets/vendor/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header id="header">
+    <button class="iconbtn" id="toggle-maps" title="Browse maps (M)">☰ Maps</button>
+    <div id="brand"><span class="fw">Forever Winter</span> <span class="sub">map atlas</span></div>
+    <div id="current-map"></div>
+    <div id="search-wrap">
+      <input id="search" type="search" placeholder="Search markers on this map…" autocomplete="off" spellcheck="false">
+      <div id="search-results"></div>
+    </div>
+    <button class="iconbtn" id="toggle-layers" title="Layers (L)">Layers ▾</button>
+  </header>
+
+  <div id="stage">
+    <div id="map"></div>
+
+    <aside class="panel collapsed" id="maps-panel">
+      <div class="panel-head">
+        <span>Maps <span class="count" id="maps-count"></span></span>
+        <button class="iconbtn" id="close-maps" style="height:26px;padding:0 8px">✕</button>
+      </div>
+      <div class="panel-body" id="maps-list"></div>
+      <div class="panel-foot">
+        <button id="save-offline" class="offline-btn" title="Download all map images so the app works with no internet">⤓ Save all maps offline</button>
+        <div id="offline-status" class="offline-status"></div>
+      </div>
+    </aside>
+
+    <aside class="panel collapsed" id="layers-panel">
+      <div class="panel-head">
+        <span>Layers <span class="count" id="layers-count"></span></span>
+        <button class="iconbtn" id="close-layers" style="height:26px;padding:0 8px">✕</button>
+      </div>
+      <div id="bg-switch" class="bg-switch" hidden></div>
+      <div class="layer-tools">
+        <button id="layers-all">Show all</button>
+        <button id="layers-none">Hide all</button>
+        <button id="layers-default">Defaults</button>
+      </div>
+      <div class="panel-body" id="layers-list"></div>
+    </aside>
+
+    <div id="scrim"></div>
+
+    <div id="fab">
+      <button class="iconbtn" id="reset-view" title="Fit map to screen">⤢ Fit</button>
+    </div>
+
+    <div id="loading"><div class="spinner"></div><div id="loading-text">Loading…</div></div>
+  </div>
+
+  <script src="assets/vendor/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

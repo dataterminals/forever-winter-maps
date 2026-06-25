@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+
+# Local dev server config (preview tooling)
+.claude/
+
+# Node (only used for icon generation; no deps committed)
+node_modules/
