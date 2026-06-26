@@ -194,26 +194,27 @@ a { color: var(--accent); }
   border: 2px solid #1a1a1a; box-shadow: 0 0 4px rgba(0,0,0,.8);
 }
 
-/* Glowing red LCD dedication — bottom-right, unobtrusive, never blocks clicks */
-#lcd-ticker {
+/* Lion-in-a-tank emoji ticker — bottom-right, seamless scrolling marquee.
+   The strip background matches the emoji's own near-black (#070709) so the
+   emoji blends into an LED-ticker strip and just the lions march across.
+   The 26px background-size width == the scroll distance, so it loops cleanly. */
+#lion-ticker {
   position: absolute; right: 10px; bottom: 8px; z-index: 800; pointer-events: none;
-  font-family: "Consolas", "DejaVu Sans Mono", monospace; font-size: 11px;
-  letter-spacing: 2px; text-transform: lowercase;
-  color: #ff3b30; opacity: .82;
-  padding: 3px 9px; border-radius: 4px;
-  background: rgba(12,8,8,.45); border: 1px solid rgba(255,59,48,.22);
-  text-shadow: 0 0 4px rgba(255,40,30,.9), 0 0 9px rgba(255,30,20,.6);
-  animation: lcdFlicker 5.5s infinite steps(60);
-  user-select: none;
+  width: 156px; height: 32px; border-radius: 5px;
+  background-color: #070709;
+  background-image: url("assets/img/lion_tank.png");
+  background-repeat: repeat-x;
+  background-position: 0 center;
+  background-size: 26px 28px;
+  border: 1px solid rgba(255, 200, 90, .22);
+  box-shadow: 0 0 8px rgba(0,0,0,.5), inset 0 0 14px rgba(0,0,0,.6);
+  opacity: .92;
+  image-rendering: auto;
+  animation: lionScroll 1.2s linear infinite;
 }
-#lcd-ticker .lcd-heart { margin-left: 5px; animation: lcdBeat 1.6s ease-in-out infinite; display: inline-block; }
-@keyframes lcdFlicker {
-  0%, 100% { opacity: .82; }
-  47% { opacity: .82; } 48% { opacity: .5; } 49% { opacity: .82; }
-  72% { opacity: .82; } 73% { opacity: .62; } 74% { opacity: .85; }
-}
-@keyframes lcdBeat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.25); } 45% { transform: scale(1); } }
-@media (max-width: 760px) { #lcd-ticker { font-size: 10px; letter-spacing: 1px; bottom: 6px; } }
+@keyframes lionScroll { from { background-position-x: 0; } to { background-position-x: -26px; } }
+@media (prefers-reduced-motion: reduce) { #lion-ticker { animation: none; } }
+@media (max-width: 760px) { #lion-ticker { width: 120px; height: 28px; bottom: 6px; } }
 
 /* ---------- Mobile ---------- */
 @media (max-width: 760px) {
