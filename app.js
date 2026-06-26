@@ -26,6 +26,11 @@ function wikiUrl(article) {
 
 /* Pixel (x,y, y-down) -> Leaflet latlng. We negate y so the image is upright. */
 const pt = (x, y) => L.latLng(-y, x);
+/* Parse a coordinate pair from the data, respecting the map's crs order. */
+function coordPair(arr) {
+  const order = (State.data && State.data.crs && State.data.crs.order) || 'xy';
+  return order === 'yx' ? { x: arr[1], y: arr[0] } : { x: arr[0], y: arr[1] };
+}
 
 const State = {
   manifest: null,
@@ -36,7 +41,14 @@ const State = {
   bgLayers: [],         // background L.layerGroup list
   bgGroup: null,        // currently shown bg layer
   searchIndex: [],      // {text, group, marker ref, latlng}
-  markerRefs: [],       // {marker(Leaflet), groupId, latlng, popupZoom}
+  measure: { active: false, pts: [], verts: [], line: null },
+};
+
+/* localStorage with a namespace + safe JSON */
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('fw:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('fw:' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('fw:' + k); } catch (e) {} },
 };
 
 /* ---------------- bootstrap ---------------- */
@@ -46,10 +58,12 @@ async function init() {
   wireUI();
   registerSW();
 
-  // pick map from hash or default to first surface map
+  // pick map from hash, else the last map used, else the first
   const fromHash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
   const found = State.manifest.maps.find(m => m.id === fromHash);
-  loadMap(found ? found.id : State.manifest.maps[0].id);
+  const last = LS.get('lastMap');
+  const fallback = State.manifest.maps.some(m => m.id === last) ? last : State.manifest.maps[0].id;
+  loadMap(found ? found.id : fallback);
 }
 
 function buildMapsPanel() {
@@ -78,6 +92,7 @@ async function loadMap(id) {
   if (!meta) return;
   showLoading(`Loading ${meta.name}…`);
   State.current = id;
+  LS.set('lastMap', id);
   location.hash = id;
   document.querySelectorAll('.map-item').forEach(n => n.classList.toggle('active', n.dataset.id === id));
   $('#current-map').innerHTML = `${esc(meta.name)} <span class="type">· ${meta.type}</span>`;
@@ -97,7 +112,7 @@ function freshMap() {
   if (State.map) { State.map.remove(); State.map = null; }
   $('#map').innerHTML = '';
   State.map = L.map('map', {
-    crs: L.CRS.Simple, minZoom: -8, maxZoom: 6, zoomSnap: 0.25, zoomDelta: 0.5,
+    crs: L.CRS.Simple, minZoom: -12, maxZoom: 8, zoomSnap: 0.25, zoomDelta: 0.5,
     attributionControl: false, zoomControl: true, preferCanvas: false,
     maxBoundsViscosity: 0.7,
     fadeAnimation: false, zoomAnimation: false, markerZoomAnimation: false,
@@ -106,7 +121,8 @@ function freshMap() {
   State.map.createPane('fwBackground');
   State.map.getPane('fwBackground').style.zIndex = 180;
   State.groupLayers = {}; State.bgLayers = []; State.bgGroup = null;
-  State.searchIndex = []; State.markerRefs = [];
+  State.searchIndex = [];
+  resetMeasureUI();
 }
 
 /* derive pixel extent {w,h} from a background (tiled or single-image) */
@@ -131,20 +147,34 @@ function loadImageSize(url) {
   });
 }
 
-/* build a Leaflet layer for one background entry */
-function makeBgLayer(bg, extent) {
+/* Build a Leaflet layer for one background entry and return its coordinate
+   bounds. Placement priority: explicit `at` box (used by single-image and
+   aerial maps, which live in their own — sometimes offset/negative —
+   coordinate space) > tile grid (pixel space) > measured image size. */
+async function makeBg(bg) {
   const lg = L.layerGroup();
-  const [tw, th] = tileSizeOf(bg);
   const opt = { pane: 'fwBackground' };
+  let bounds;
   if (bg.tiles && bg.tiles.length) {
+    const [tw, th] = tileSizeOf(bg);
     bg.tiles.forEach(t => {
       const x0 = t.position[0] * tw, y0 = t.position[1] * th;
       L.imageOverlay(imgUrl(t.image), [pt(x0, y0), pt(x0 + tw, y0 + th)], opt).addTo(lg);
     });
+    const e = extentFromTiles(bg);
+    bounds = L.latLngBounds(pt(0, 0), pt(e.w, e.h));
+  } else if (bg.at) {
+    const a = coordPair(bg.at[0]), b = coordPair(bg.at[1]);
+    bounds = L.latLngBounds(pt(a.x, a.y), pt(b.x, b.y));
+    if (bg.image) L.imageOverlay(imgUrl(bg.image), bounds, opt).addTo(lg);
   } else if (bg.image) {
-    L.imageOverlay(imgUrl(bg.image), [pt(0, 0), pt(extent.w, extent.h)], opt).addTo(lg);
+    const sz = (await loadImageSize(imgUrl(bg.image))) || { w: 2000, h: 2000 };
+    bounds = L.latLngBounds(pt(0, 0), pt(sz.w, sz.h));
+    L.imageOverlay(imgUrl(bg.image), bounds, opt).addTo(lg);
+  } else {
+    bounds = L.latLngBounds(pt(0, 0), pt(2000, 2000));
   }
-  return lg;
+  return { layer: lg, bounds };
 }
 
 async function renderMap(data, meta) {
@@ -152,21 +182,23 @@ async function renderMap(data, meta) {
   const map = State.map;
   const backgrounds = data.backgrounds || (data.background ? [data.background] : []);
 
-  // Determine canvas extent from the first background.
-  let extent;
-  const first = backgrounds[0] || {};
-  if (first.tiles && first.tiles.length) extent = extentFromTiles(first);
-  else if (first.image) extent = (await loadImageSize(imgUrl(first.image))) || { w: 2000, h: 2000 };
-  else extent = { w: 2000, h: 2000 };
-  State.extent = extent;
-
-  const world = L.latLngBounds(pt(0, 0), pt(extent.w, extent.h));
+  // Build each background; the first one defines the world bounds.
+  State.bgLayers = [];
+  let world = null;
+  for (let i = 0; i < backgrounds.length; i++) {
+    const { layer, bounds } = await makeBg(backgrounds[i]);
+    State.bgLayers.push({ name: backgrounds[i].name, layer });
+    if (i === 0) world = bounds;
+  }
+  if (!world) world = L.latLngBounds(pt(0, 0), pt(2000, 2000));
+  State.worldBounds = world;
   map.setMaxBounds(world.pad(0.25));
 
-  // Background layers (+ switcher when >1)
-  State.bgLayers = backgrounds.map(bg => ({ name: bg.name, layer: makeBgLayer(bg, extent) }));
-  showBackground(0);
-  buildBgSwitch(backgrounds);
+  // restore the last background choice for this map
+  let bgIdx = LS.get('bg:' + State.current, 0);
+  if (!(bgIdx >= 0 && bgIdx < State.bgLayers.length)) bgIdx = 0;
+  showBackground(bgIdx);
+  buildBgSwitch(backgrounds, bgIdx);
 
   // Groups & markers
   buildMarkers(data);
@@ -182,9 +214,10 @@ function showBackground(idx) {
   const entry = State.bgLayers[idx];
   if (!entry) return;
   State.bgGroup = entry.layer.addTo(State.map);
+  if (State.current) LS.set('bg:' + State.current, idx);
 }
 
-function buildBgSwitch(backgrounds) {
+function buildBgSwitch(backgrounds, selected = 0) {
   const box = $('#bg-switch');
   box.innerHTML = '';
   if (backgrounds.length <= 1) { box.hidden = true; return; }
@@ -192,7 +225,7 @@ function buildBgSwitch(backgrounds) {
   backgrounds.forEach((bg, i) => {
     const id = 'bg-' + i;
     const lab = el('label');
-    lab.innerHTML = `<input type="radio" name="bgsel" id="${id}" ${i === 0 ? 'checked' : ''}><span>${esc(bg.name || ('View ' + (i + 1)))}</span>`;
+    lab.innerHTML = `<input type="radio" name="bgsel" id="${id}" ${i === selected ? 'checked' : ''}><span>${esc(bg.name || ('View ' + (i + 1)))}</span>`;
     lab.querySelector('input').onchange = () => showBackground(i);
     box.appendChild(lab);
   });
@@ -244,11 +277,20 @@ function buildMarkers(data) {
   }
   State.counts = counts;
 
-  // Show default groups on the map.
+  // Show groups: use the saved per-map choice if present, else the data default.
+  const prefs = LS.get('layers:' + State.current, {});
   for (const gid in State.groupLayers) {
     const g = groups[gid];
-    if (!g || g.isDefault !== false) State.groupLayers[gid].addTo(State.map);
+    const def = !g || g.isDefault !== false;
+    const want = prefs[gid] !== undefined ? prefs[gid] : def;
+    if (want) State.groupLayers[gid].addTo(State.map);
   }
+}
+
+function saveLayerPrefs() {
+  const prefs = {};
+  for (const gid in State.groupLayers) prefs[gid] = State.map.hasLayer(State.groupLayers[gid]);
+  LS.set('layers:' + State.current, prefs);
 }
 
 /* ---------------- layers panel ---------------- */
@@ -276,6 +318,7 @@ function buildLayersPanel(data, meta) {
       if (cb.checked) State.groupLayers[gid].addTo(State.map);
       else State.map.removeLayer(State.groupLayers[gid]);
       row.classList.toggle('off', !cb.checked);
+      saveLayerPrefs();
     };
     list.appendChild(row);
   });
@@ -291,6 +334,8 @@ function setAllLayers(mode) {
     if (want && !has) State.groupLayers[gid].addTo(State.map);
     if (!want && has) State.map.removeLayer(State.groupLayers[gid]);
   }
+  // 'default' reverts to the data's defaults; 'all'/'none' are remembered
+  if (mode === 'default') LS.del('layers:' + State.current); else saveLayerPrefs();
   // resync checkboxes
   buildLayersPanel(State.data, null);
 }
@@ -353,7 +398,8 @@ function wireUI() {
   $('#close-maps').onclick = closePanels;
   $('#close-layers').onclick = closePanels;
   $('#scrim').onclick = closePanels;
-  $('#reset-view').onclick = () => State.map && State.map.fitBounds(L.latLngBounds(pt(0, 0), pt(State.extent.w, State.extent.h)), { padding: [10, 10] });
+  $('#reset-view').onclick = () => State.map && State.worldBounds && State.map.fitBounds(State.worldBounds, { padding: [10, 10] });
+  $('#measure-btn').onclick = toggleMeasure;
   $('#layers-all').onclick = () => setAllLayers('all');
   $('#layers-none').onclick = () => setAllLayers('none');
   $('#layers-default').onclick = () => setAllLayers('default');
@@ -380,6 +426,7 @@ function wireUI() {
     if (e.key === 'm' || e.key === 'M') togglePanel('maps');
     if (e.key === 'l' || e.key === 'L') togglePanel('layers');
     if (e.key === '/') { e.preventDefault(); $('#search').focus(); }
+    if (e.key === 'Escape' && State.measure.active) { State.measure.pts.length ? measureClear() : stopMeasure(); }
   });
 
   window.addEventListener('hashchange', () => {
@@ -390,6 +437,59 @@ function wireUI() {
 
 function showLoading(txt) { $('#loading-text').textContent = txt || 'Loading…'; $('#loading').classList.add('show'); }
 function hideLoading() { $('#loading').classList.remove('show'); }
+
+/* ---------------- measure tool ---------------- */
+function resetMeasureUI() {
+  State.measure = { active: false, pts: [], verts: [], line: null };
+  $('#measure-btn') && $('#measure-btn').classList.remove('active');
+  $('#map') && $('#map').classList.remove('measuring');
+  $('#measure-readout') && ($('#measure-readout').hidden = true);
+}
+function toggleMeasure() { if (State.map) State.measure.active ? stopMeasure() : startMeasure(); }
+function startMeasure() {
+  State.measure.active = true;
+  $('#measure-btn').classList.add('active');
+  $('#map').classList.add('measuring');
+  $('#measure-readout').hidden = false;
+  updateMeasureReadout();
+  State.map.on('click', measureClick);
+  State.map.on('contextmenu', measureClear);
+}
+function stopMeasure() {
+  State.measure.active = false;
+  $('#measure-btn').classList.remove('active');
+  $('#map').classList.remove('measuring');
+  $('#measure-readout').hidden = true;
+  State.map.off('click', measureClick);
+  State.map.off('contextmenu', measureClear);
+  measureClearGeom();
+}
+function measureClearGeom() {
+  const m = State.measure;
+  if (m.line) { State.map.removeLayer(m.line); m.line = null; }
+  m.verts.forEach(v => State.map.removeLayer(v));
+  m.verts = []; m.pts = [];
+}
+function measureClear(e) {
+  if (e && e.originalEvent) L.DomEvent.preventDefault(e.originalEvent);
+  measureClearGeom(); updateMeasureReadout();
+}
+function measureClick(e) {
+  const m = State.measure;
+  m.pts.push(e.latlng);
+  m.verts.push(L.marker(e.latlng, { icon: L.divIcon({ className: 'measure-vertex', iconSize: [9, 9] }), interactive: false, keyboard: false }).addTo(State.map));
+  if (m.line) m.line.setLatLngs(m.pts);
+  else m.line = L.polyline(m.pts, { color: '#c9a227', weight: 2, dashArray: '6,5' }).addTo(State.map);
+  updateMeasureReadout();
+}
+function updateMeasureReadout() {
+  const ro = $('#measure-readout'), pts = State.measure.pts;
+  if (!pts.length) { ro.innerHTML = 'Click points to measure · <b>Esc</b>/right-click clears'; return; }
+  if (pts.length < 2) { ro.innerHTML = 'First point set — click the next · <b>Esc</b> clears'; return; }
+  let total = 0, seg = 0;
+  for (let i = 1; i < pts.length; i++) { const d = State.map.distance(pts[i - 1], pts[i]); total += d; if (i === pts.length - 1) seg = d; }
+  ro.innerHTML = `Total <b>${Math.round(total).toLocaleString()}</b> u · last <b>${Math.round(seg).toLocaleString()}</b> u · ${pts.length} pts`;
+}
 
 function registerSW() {
   // Skip on localhost so dev edits aren't shadowed by the cache.

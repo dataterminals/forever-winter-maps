@@ -180,6 +180,41 @@ a { color: var(--accent); }
 #scrim { position: absolute; inset: 0; background: rgba(0,0,0,.45); z-index: 950; display: none; }
 #scrim.show { display: block; }
 
+/* Measure tool */
+#map.measuring { cursor: crosshair; }
+#measure-readout {
+  position: absolute; left: 12px; bottom: 56px; z-index: 900;
+  background: rgba(20,22,22,.92); border: 1px solid var(--accent-dim); border-radius: 6px;
+  padding: 6px 10px; font-size: 12px; color: var(--text); box-shadow: var(--shadow);
+  pointer-events: none; max-width: 60vw;
+}
+#measure-readout b { color: var(--accent); }
+.measure-vertex {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--accent);
+  border: 2px solid #1a1a1a; box-shadow: 0 0 4px rgba(0,0,0,.8);
+}
+
+/* Glowing red LCD dedication — bottom-right, unobtrusive, never blocks clicks */
+#lcd-ticker {
+  position: absolute; right: 10px; bottom: 8px; z-index: 800; pointer-events: none;
+  font-family: "Consolas", "DejaVu Sans Mono", monospace; font-size: 11px;
+  letter-spacing: 2px; text-transform: lowercase;
+  color: #ff3b30; opacity: .82;
+  padding: 3px 9px; border-radius: 4px;
+  background: rgba(12,8,8,.45); border: 1px solid rgba(255,59,48,.22);
+  text-shadow: 0 0 4px rgba(255,40,30,.9), 0 0 9px rgba(255,30,20,.6);
+  animation: lcdFlicker 5.5s infinite steps(60);
+  user-select: none;
+}
+#lcd-ticker .lcd-heart { margin-left: 5px; animation: lcdBeat 1.6s ease-in-out infinite; display: inline-block; }
+@keyframes lcdFlicker {
+  0%, 100% { opacity: .82; }
+  47% { opacity: .82; } 48% { opacity: .5; } 49% { opacity: .82; }
+  72% { opacity: .82; } 73% { opacity: .62; } 74% { opacity: .85; }
+}
+@keyframes lcdBeat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.25); } 45% { transform: scale(1); } }
+@media (max-width: 760px) { #lcd-ticker { font-size: 10px; letter-spacing: 1px; bottom: 6px; } }
+
 /* ---------- Mobile ---------- */
 @media (max-width: 760px) {
   .panel { width: min(86vw, 340px); box-shadow: var(--shadow); }
